@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>八八 ─ 花札オンライン</title>
+<style>
+:root{--bg:#e9e2cc;--pn:#f6f0dc;--tx:#2a251b;--gd:#8a6d1c;--ln:rgba(138,109,28,.4);--bt:#fff8de;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39}}
+:root[data-theme="dark"]{--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Hiragino Sans","Yu Gothic",sans-serif;font-size:14px}
+#app{max-width:900px;margin:0 auto;padding:12px}
+h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter-spacing:.5em;color:var(--gd);margin:4px 0 10px}
+.bar,.box{background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:8px 10px;margin-bottom:10px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.st b{margin-left:6px;color:var(--gd)}
+.row{display:flex;flex-wrap:wrap;gap:5px;min-height:56px;align-items:flex-start}
+.lb{font-size:11px;opacity:.65;margin-bottom:4px}
+.c{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:64px;border-radius:5px;color:#fff;font-size:17px;border:1px solid rgba(0,0,0,.3);box-sizing:border-box}
+.c small{font-size:9px;opacity:.9}
+.c.on{cursor:pointer;outline:2px solid var(--gd);outline-offset:1px}
+.c.pk{cursor:pointer;outline:3px solid #e33}
+button{font:inherit;background:var(--bt);color:var(--tx);border:1px solid var(--gd);border-radius:5px;padding:8px 14px;cursor:pointer;margin:2px}
+.log,.chat{max-height:150px;overflow-y:auto;font-size:12px;line-height:1.6}
+input{font:inherit;padding:6px;width:60%;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:4px}
+</style></head><body><div id="app">読み込み中…</div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import{getDatabase,ref,set,onValue}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+// ▼ここの { } の中に、Firebaseの firebaseConfig の中身を貼る(手順書の5)
+const FB={apiKey: "AIzaSyCPuk6YfcgMc2YPMwM3KGt7pAJP6Hmjb20",
+  authDomain: "hachihachi-4970b.firebaseapp.com",
+  databaseURL: "https://hachihachi-4970b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hachihachi-4970b",
+  storageBucket: "hachihachi-4970b.firebasestorage.app",
+  messagingSenderId: "350490613625",
+  appId: "1:350490613625:web:0fe6c9de802fbac82281a8"};
+(async()=>{
+const MN=['松','梅','桜','藤','菖','牡','萩','芒','菊','紅','柳','桐'],LY=['HNKK','TNKK','HNKK','TNKK','TNKK','TNKK','TNKK','HTKK','TNKK','TNKK','HTNK','HKKK'],PT={H:20,T:10,N:5,K:1},TL={H:'光',T:'タネ',N:'短',K:'カス'};
+const ty=c=>LY[c>>2][c&3],pt=c=>PT[ty(c)],lab=c=>MN[c>>2]+TL[ty(c)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const fm=v=>(v<0?'-':'')+(Math.abs(v)/12|0)+'貫'+Math.abs(v)%12+'つ';
+const T=u=>'\u0001'+u+'\u0002',ALL=[...Array(48).keys()];
+const app=document.getElementById('app');
+if(!FB.apiKey){app.textContent='firebaseConfig が未入力です(手順書の5を参照)';return}
+const room=(new URLSearchParams(location.search).get('r')||prompt('部屋コード(参加者全員で同じもの)')||'').replace(/[^\w-]/g,'');
+if(!room){app.textContent='部屋コードが必要です。リンクの末尾に ?r=合言葉 を付けてください。';return}
+let myName='';try{myName=localStorage.hhName||''}catch(e){}
+if(!myName){myName=prompt('表示名')||'名無し';try{localStorage.hhName=myName}catch(e){}}
+const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
+await signInAnonymously(au);
+const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
+set(R('n/'+me),myName);
+let S=null,C=[],names={},pending=null;
+const D=()=>({ph:'lobby',seats:[],bal:{},round:0,log:[],tax:0});
+const nm=u=>names[u]||'だれか';
+function load(){draw()}
+const mut=async f=>{const n=JSON.parse(JSON.stringify(S));f(n);S=n;draw();try{await set(R('s'),JSON.stringify(n))}catch(e){alert('保存できませんでした')}};
+
+function yaku(h){const e=h.map(c=>(c>>2)==10?'K':ty(c)),k=e.filter(t=>t=='K').length,n=e.filter(t=>t=='N').length,r=[];
+if(k==7)r.push(['カラス',10]);else if(k==6){const o=e.find(t=>t!='K');r.push(o=='H'?['光一',8]:o=='T'?['十べ',6]:['丹べ',6])}else if(k+n==7&&n>=2)r.push(['赤',6]);
+const q={};h.forEach(c=>q[c>>2]=(q[c>>2]||0)+1);const s=Object.values(q).sort((a,b)=>b-a).join('');
+const P={43:['四三',20],421:['一二四',18],331:['二三本',14],322:['二二三',12],2221:['くっつき',8]};
+if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){let b=4;const m=+Object.keys(q).find(x=>q[x]==3);if([3,4,6].includes(m)||(m==11&&!h.some(c=>c>>2==11&&c%4==0)))b+=2;r.push(['三本',b])}
+return r}
+
+function nr(n,di){let d,f,c;do{d=sh(ALL);f=d.splice(0,6);c={};f.forEach(x=>c[x>>2]=(c[x>>2]||0)+1)}while(Object.values(c).some(v=>v==4));
+n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
+function fin(n){for(let i=n.dc;i<n.ord.length;i++){const u=n.ord[i];n.deck.push(...n.hands[u]);n.hands[u]=[]}n.dc=n.ord.length;n.deck=sh(n.deck);
+if(n.go.length<2){const w=n.go[0];if(w)n.bal[w]+=n.pot;n.pot=0;n.ph='res';n.res={none:1,w:w||null};n.nd=w?n.seats.indexOf(w):n.dealer;return}
+n.go.forEach(a=>{const y=yaku(n.hands[a]),k=y.reduce((s,x)=>s+x[1],0);if(k){n.log.push(T(a)+' 手役 '+y.map(x=>x[0]).join('+')+' '+k+'貫');n.go.forEach(b=>{if(b!=a){n.bal[a]+=12*k;n.bal[b]-=12*k}})}});n.ph='play';n.tp=0}
+function take(n,u,c,pick){const m=n.field.filter(f=>f>>2==c>>2),t=m.length==2?[pick&&m.includes(pick)?pick:m[0]]:m;
+if(t.length){n.cap[u]=(n.cap[u]||[]).concat([c],t);n.field=n.field.filter(f=>!t.includes(f));return 1}n.field.push(c);return 0}
+function settle(n){const p={};n.go.forEach(u=>p[u]=(n.cap[u]||[]).reduce((s,c)=>s+pt(c),0));const w=n.go.reduce((a,b)=>p[b]>p[a]?b:a);let rev=0;
+if(n.go.length==2){const[a,b]=n.go,d=Math.abs(p[a]-p[b])*2;if(d){n.bal[w]+=d;n.bal[w==a?b:a]-=d}}
+else{rev=Math.min(...n.go.map(u=>p[u]))<=25?-1:1;n.go.forEach(u=>n.bal[u]+=rev*(p[u]-88)*2)}
+n.bal[w]+=n.pot-1;n.tax=(n.tax||0)+1;n.pot=0;n.ph='res';n.res={p,w,rev:rev<0};n.nd=n.seats.indexOf(w)}
+const play=(c,pick)=>mut(n=>{const u=n.go[n.tp];n.hands[u]=n.hands[u].filter(x=>x!=c);let L=T(u)+' '+lab(c)+(take(n,u,c,pick)?'で取り':'を場へ');
+if(n.deck.length){const d=n.deck.shift();L+=' / 山札'+lab(d)+(take(n,u,d)?'で取り':'を場へ')}n.log.push(L);
+if(n.go.every(g=>!n.hands[g].length))settle(n);else n.tp=(n.tp+1)%n.go.length});
+const dec=go=>mut(n=>{const u=n.ord[n.dc];if(go)n.go.push(u);else{const f=24*(n.dc+1);n.bal[u]-=f;n.pot+=f;n.deck.push(...n.hands[u]);n.hands[u]=[]}
+n.log.push(T(u)+(go?' 行く':' 降りる'));n.dc++;if(n.go.length==3||n.dc>=n.ord.length)fin(n)});
+
+const chip=(c,a,x)=>`<span class="c ${x||''}" ${a?`data-a="${a}" data-c="${c}"`:''} style="background:hsl(${(c>>2)*30},45%,32%)">${MN[c>>2]}<small>${TL[ty(c)]}</small></span>`;
+const ln=s=>esc(s).replace(/\u0001(.*?)\u0002/g,(_,i)=>esc(nm(i)));
+function draw(){if(!S)return;const mine=(S.hands&&S.hands[me])||[],inS=S.seats.includes(me);
+let h='<h1>八八</h1><div class="bar">'+(S.seats.length?S.seats.map(u=>`<span class="st">${esc(nm(u))}${u==me?'(あなた)':''}${S.round?`<b>${fm((S.bal[u]||0)-60)}</b>`:''}</span>`).join(''):'まだ誰も着席していません')+(S.tax?`<span class="st">税金 ${S.tax}つ</span>`:'')+'</div>';
+if(S.ph=='lobby'){h+='<div class="box">'+(!inS&&S.seats.length<6?'<button data-a="sit">着席する</button>':'')+(inS&&S.seats.length>=2?'<button data-a="start">ゲーム開始</button>':'')+(inS&&S.seats.length<2?'2人以上で開始できます':'')+'</div>'}
+else{h+=`<div class="box"><div class="lb">場札 / 山札${S.deck.length}枚${S.pot?' / 降り賃 '+fm(S.pot):''}</div><div class="row">${S.field.map(c=>chip(c,pending!=null&&c>>2==pending>>2?'pick':'',pending!=null&&c>>2==pending>>2?'pk':'')).join('')}</div></div>`;
+if(S.ph=='decl'){const u=S.ord[S.dc];h+=`<div class="box">宣言中: ${esc(nm(u))}${u==me?`<br><button data-a="go">行く</button><button data-a="drop">降りる(降り賃 ${2*(S.dc+1)}貫)</button>`:''}</div>`}
+if(S.ph=='play'){h+='<div class="box">'+S.go.map((u,i)=>{const cp=S.cap[u]||[];return `<div class="lb">${i==S.tp?'▶ ':''}${esc(nm(u))} 取り札 ${cp.reduce((s,c)=>s+pt(c),0)}点</div><div class="row">${cp.map(c=>chip(c)).join('')}</div>`}).join('')+'</div>'}
+if(S.ph=='res'){const r=S.res||{};h+='<div class="box">'+(r.none?'参加者が足りず流れました':S.go.map(u=>`${esc(nm(u))}: ${r.p[u]}点`).join(' / ')+(r.rev?'<br>25点以下がいるため取り札の精算は逆転':''))+(r.w?`<br>勝者: ${esc(nm(r.w))}(次の親)`:'')+'<br><button data-a="next">次の局へ</button></div>'}
+if(inS&&mine.length){const my=S.ph=='play'&&S.go[S.tp]==me,y=S.ph=='decl'&&mine.length==7?yaku(mine):[];
+h+=`<div class="box"><div class="lb">あなたの手札${y.length?' ─ 手役: '+y.map(x=>x[0]+x[1]+'貫').join(' + '):''}</div><div class="row">${mine.map(c=>chip(c,my?'hand':'',my?'on':'')).join('')}</div></div>`}}
+h+='<div class="box log">'+(S.log||[]).slice(-10).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
+h+='<div class="box"><div class="chat">'+C.slice(-30).map(m=>`<div><b>${esc(nm(m.u))}</b>: ${esc(m.t)}</div>`).join('')+'</div><input id="ci" maxlength="120" placeholder="発言"><button data-a="chat">送信</button></div>';
+const ci=document.getElementById('ci'),v=ci?ci.value:'';app.innerHTML=h;if(v){const n=document.getElementById('ci');n.value=v}}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
+if(a=='sit')mut(n=>{if(!n.seats.includes(me)&&n.seats.length<6)n.seats.push(me)});
+if(a=='start')mut(n=>{n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];let cd=n.seats.map((_,i)=>i);while(cd.length>1){const d=sh(ALL),v=cd.map((_,i)=>pt(d[i])),m=Math.max(...v);cd=cd.filter((_,i)=>v[i]==m)}nr(n,cd[0])});
+if(a=='go'||a=='drop')dec(a=='go');
+if(a=='hand'&&S.ph=='play'&&S.go[S.tp]==me){if(S.field.filter(f=>f>>2==c>>2).length==2){pending=c;draw()}else play(c)}
+if(a=='pick'){const c0=pending;pending=null;play(c0,c)}
+if(a=='next')mut(n=>nr(n,n.nd));
+if(a=='chat'){const i=document.getElementById('ci'),t=i.value.trim();if(t){C=C.concat([{u:me,t}]).slice(-60);i.value='';draw();set(R('c'),JSON.stringify(C))}}});
+onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();pending=null;draw()});
+onValue(R('c'),s=>{C=s.exists()?JSON.parse(s.val()):[];if(S)draw()});
+onValue(R('n'),s=>{names=s.val()||{};if(S)draw()});
+})();
+</script></body></html>
