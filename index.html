@@ -3,38 +3,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>八八 ─ 花札オンライン</title>
 <style>
-:root{--bg:#e9e2cc;--pn:#f6f0dc;--tx:#2a251b;--gd:#8a6d1c;--ln:rgba(138,109,28,.4);--bt:#fff8de;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39}}
-:root[data-theme="dark"]{--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39}
+:root{--bg:#e9e2cc;--pn:#f6f0dc;--tx:#2a251b;--gd:#8a6d1c;--ln:rgba(138,109,28,.4);--bt:#fff8de;--hi:#fff0b3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a}}
+:root[data-theme="dark"]{--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:"Hiragino Sans","Yu Gothic",sans-serif;font-size:14px}
-#app{max-width:900px;margin:0 auto;padding:12px}
-h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter-spacing:.5em;color:var(--gd);margin:4px 0 10px}
-.bar,.box{background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:8px 10px;margin-bottom:10px}
-.bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-.st b{margin-left:6px;color:var(--gd)}
-.row{display:flex;flex-wrap:wrap;gap:5px;min-height:56px;align-items:flex-start}
-.lb{font-size:11px;opacity:.65;margin-bottom:4px}
-.c{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:64px;border-radius:5px;color:#fff;font-size:17px;border:1px solid rgba(0,0,0,.3);box-sizing:border-box}
-.c small{font-size:9px;opacity:.9}
-.c.on{cursor:pointer;outline:2px solid var(--gd);outline-offset:1px}
-.c.pk{cursor:pointer;outline:3px solid #e33}
-button{font:inherit;background:var(--bt);color:var(--tx);border:1px solid var(--gd);border-radius:5px;padding:8px 14px;cursor:pointer;margin:2px}
-.log,.chat{max-height:150px;overflow-y:auto;font-size:12px;line-height:1.6}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Hiragino Sans","Yu Gothic",sans-serif;font-size:13px}
+#app{max-width:1000px;margin:0 auto;padding:10px}
+h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter-spacing:.5em;color:var(--gd);margin:2px 0 8px}
+.box{background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:8px 10px;margin-top:8px}
+.tbl{display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px}
+.seat{background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:6px;min-height:100px;overflow:hidden}
+.seat.turn{outline:3px solid #e6b800;background:var(--hi)}
+.oyam{display:inline-block;background:#c0392b;color:#fff;border-radius:3px;padding:0 5px;margin-left:4px;font-size:11px}
+.field{grid-column:1/4;background:#fffdf5;color:#2a251b;border:2px solid var(--gd);border-radius:8px;min-height:240px;padding:8px}
+.row{display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start}
+.cd{width:50px;height:83px;border-radius:4px;display:block;box-shadow:0 1px 3px rgba(0,0,0,.45);background:#ddd}
+.cd.h{width:62px;height:103px}.cd.s{width:28px;height:47px}
+.fc{position:relative;display:inline-block;margin:3px 14px 18px 3px}
+.ov{position:absolute;left:14px;top:14px}.ov2{position:absolute;left:26px;top:26px}
+.hl{outline:3px solid #e33;cursor:pointer}.sel{outline:3px solid #2a8;transform:translateY(-8px)}.nw{outline:2px dashed #888}
+.msg{font-weight:bold;margin:4px 0}
+button{font:inherit;background:var(--bt);color:var(--tx);border:1px solid var(--gd);border-radius:5px;padding:7px 14px;cursor:pointer;margin:2px}
+.log,.chat{max-height:140px;overflow-y:auto;font-size:12px;line-height:1.6}
 input{font:inherit;padding:6px;width:60%;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:4px}
 </style></head><body><div id="app">読み込み中…</div>
+<script src="config.js"></script>
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import{getDatabase,ref,set,onValue}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
-// ▼ここの { } の中に、Firebaseの firebaseConfig の中身を貼る(手順書の5)
-const FB={apiKey: "AIzaSyCPuk6YfcgMc2YPMwM3KGt7pAJP6Hmjb20",
-  authDomain: "hachihachi-4970b.firebaseapp.com",
-  databaseURL: "https://hachihachi-4970b-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "hachihachi-4970b",
-  storageBucket: "hachihachi-4970b.firebasestorage.app",
-  messagingSenderId: "350490613625",
-  appId: "1:350490613625:web:0fe6c9de802fbac82281a8"};
+const FB=window.FBCFG||{};
 (async()=>{
 const MN=['松','梅','桜','藤','菖','牡','萩','芒','菊','紅','柳','桐'],LY=['HNKK','TNKK','HNKK','TNKK','TNKK','TNKK','TNKK','HTKK','TNKK','TNKK','HTNK','HKKK'],PT={H:20,T:10,N:5,K:1},TL={H:'光',T:'タネ',N:'短',K:'カス'};
 const ty=c=>LY[c>>2][c&3],pt=c=>PT[ty(c)],lab=c=>MN[c>>2]+TL[ty(c)];
@@ -43,7 +41,7 @@ const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+
 const fm=v=>(v<0?'-':'')+(Math.abs(v)/12|0)+'貫'+Math.abs(v)%12+'つ';
 const T=u=>'\u0001'+u+'\u0002',ALL=[...Array(48).keys()];
 const app=document.getElementById('app');
-if(!FB.apiKey){app.textContent='firebaseConfig が未入力です(手順書の5を参照)';return}
+if(!FB.apiKey){app.textContent='config.js が見つからないか、firebaseConfig が未入力です';return}
 const room=(new URLSearchParams(location.search).get('r')||prompt('部屋コード(参加者全員で同じもの)')||'').replace(/[^\w-]/g,'');
 if(!room){app.textContent='部屋コードが必要です。リンクの末尾に ?r=合言葉 を付けてください。';return}
 let myName='';try{myName=localStorage.hhName||''}catch(e){}
@@ -53,7 +51,7 @@ await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName);
 let S=null,C=[],names={},pending=null;
-const D=()=>({ph:'lobby',seats:[],bal:{},round:0,log:[],tax:0});
+const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
 const mut=async f=>{const n=JSON.parse(JSON.stringify(S));f(n);S=n;draw();try{await set(R('s'),JSON.stringify(n))}catch(e){alert('保存できませんでした')}};
@@ -66,46 +64,88 @@ if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){
 return r}
 
 function nr(n,di){let d,f,c;do{d=sh(ALL);f=d.splice(0,6);c={};f.forEach(x=>c[x>>2]=(c[x>>2]||0)+1)}while(Object.values(c).some(v=>v==4));
-n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
+n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.oya=null;n.pend=null;n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
 function fin(n){for(let i=n.dc;i<n.ord.length;i++){const u=n.ord[i];n.deck.push(...n.hands[u]);n.hands[u]=[]}n.dc=n.ord.length;n.deck=sh(n.deck);
 if(n.go.length<2){const w=n.go[0];if(w)n.bal[w]+=n.pot;n.pot=0;n.ph='res';n.res={none:1,w:w||null};n.nd=w?n.seats.indexOf(w):n.dealer;return}
 n.go.forEach(a=>{const y=yaku(n.hands[a]),k=y.reduce((s,x)=>s+x[1],0);if(k){n.log.push(T(a)+' 手役 '+y.map(x=>x[0]).join('+')+' '+k+'貫');n.go.forEach(b=>{if(b!=a){n.bal[a]+=12*k;n.bal[b]-=12*k}})}});n.ph='play';n.tp=0}
-function take(n,u,c,pick){const m=n.field.filter(f=>f>>2==c>>2),t=m.length==2?[pick&&m.includes(pick)?pick:m[0]]:m;
-if(t.length){n.cap[u]=(n.cap[u]||[]).concat([c],t);n.field=n.field.filter(f=>!t.includes(f));return 1}n.field.push(c);return 0}
 function settle(n){const p={};n.go.forEach(u=>p[u]=(n.cap[u]||[]).reduce((s,c)=>s+pt(c),0));const w=n.go.reduce((a,b)=>p[b]>p[a]?b:a);let rev=0;
 if(n.go.length==2){const[a,b]=n.go,d=Math.abs(p[a]-p[b])*2;if(d){n.bal[w]+=d;n.bal[w==a?b:a]-=d}}
 else{rev=Math.min(...n.go.map(u=>p[u]))<=25?-1:1;n.go.forEach(u=>n.bal[u]+=rev*(p[u]-88)*2)}
 n.bal[w]+=n.pot-1;n.tax=(n.tax||0)+1;n.pot=0;n.ph='res';n.res={p,w,rev:rev<0};n.nd=n.seats.indexOf(w)}
-const play=(c,pick)=>mut(n=>{const u=n.go[n.tp];n.hands[u]=n.hands[u].filter(x=>x!=c);let L=T(u)+' '+lab(c)+(take(n,u,c,pick)?'で取り':'を場へ');
-if(n.deck.length){const d=n.deck.shift();L+=' / 山札'+lab(d)+(take(n,u,d)?'で取り':'を場へ')}n.log.push(L);
-if(n.go.every(g=>!n.hands[g].length))settle(n);else n.tp=(n.tp+1)%n.go.length});
 const dec=go=>mut(n=>{const u=n.ord[n.dc];if(go)n.go.push(u);else{const f=24*(n.dc+1);n.bal[u]-=f;n.pot+=f;n.deck.push(...n.hands[u]);n.hands[u]=[]}
 n.log.push(T(u)+(go?' 行く':' 降りる'));n.dc++;if(n.go.length==3||n.dc>=n.ord.length)fin(n)});
 
-const chip=(c,a,x)=>`<span class="c ${x||''}" ${a?`data-a="${a}" data-c="${c}"`:''} style="background:hsl(${(c>>2)*30},45%,32%)">${MN[c>>2]}<small>${TL[ty(c)]}</small></span>`;
+const MN2=['松','梅','桜','藤','菖蒲','牡丹','萩','芒','菊','紅葉','柳','桐'];
+const SPN={0:'松に鶴',1:'松に赤短',4:'梅に鶯',5:'梅に赤短',8:'桜に幕',9:'桜に赤短',12:'藤にほととぎす',13:'藤の短冊',16:'菖蒲に八橋',17:'菖蒲の短冊',20:'牡丹に蝶',21:'牡丹に青短',24:'萩に猪',25:'萩の短冊',28:'芒に月',29:'芒に雁',32:'菊に盃',33:'菊に青短',36:'紅葉に鹿',37:'紅葉に青短',40:'柳に小野道風(雨)',41:'柳に燕',42:'柳の短冊',44:'桐に鳳凰'};
+const tip=c=>{const t=ty(c);return (SPN[c]||MN2[c>>2]+'のカス')+' / '+TL[t]+' '+PT[t]+'点'};
+const img=(c,x,a)=>`<img class="cd ${x||''}" src="cards/c${String(c).padStart(2,'0')}.jpg" title="${esc(tip(c))}" alt=""${a||''}>`;
+let selH=null,flipId=0;
+const fmt=c=>c>>2;
+const hcommit=(c,hm)=>mut(n=>{const u=n.go[n.tp];n.hands[u]=n.hands[u].filter(x=>x!=c);if(!hm.length)n.field.push(c);n.pend={id:Date.now(),h:c,hm,st:'flip'};n.log.push(T(u)+' '+lab(c)+(hm.length?'でマッチ':'を場へ'))});
+const flip=()=>mut(n=>{const u=n.go[n.tp],p=n.pend;if(!p||p.st!='flip')return;
+if(!n.deck.length){p.st='collect';p.dm=[];return}
+const d=n.deck.shift();p.d=d;const M=n.field.filter(f=>f>>2==d>>2&&!p.hm.includes(f));
+if(M.length==2){p.cand=M;p.st='pickd';p.dm=[]}else if(M.length==0){p.dm=[];n.field.push(d);p.st='collect'}else{p.dm=M;p.st='collect'}
+n.log.push(T(u)+' 山札 '+lab(d))});
+const collect=()=>mut(n=>{const u=n.go[n.tp],p=n.pend,g=[];if(p.hm.length)g.push(p.h,...p.hm);if(p.d!=null&&p.dm&&p.dm.length)g.push(p.d,...p.dm);
+n.cap[u]=(n.cap[u]||[]).concat(g);n.field=n.field.filter(f=>!g.includes(f));n.pend=null;
+if(n.go.every(x=>!n.hands[x].length))settle(n);else n.tp=(n.tp+1)%n.go.length});
 const ln=s=>esc(s).replace(/\u0001(.*?)\u0002/g,(_,i)=>esc(nm(i)));
-function draw(){if(!S)return;const mine=(S.hands&&S.hands[me])||[],inS=S.seats.includes(me);
-let h='<h1>八八</h1><div class="bar">'+(S.seats.length?S.seats.map(u=>`<span class="st">${esc(nm(u))}${u==me?'(あなた)':''}${S.round?`<b>${fm((S.bal[u]||0)-60)}</b>`:''}</span>`).join(''):'まだ誰も着席していません')+(S.tax?`<span class="st">税金 ${S.tax}つ</span>`:'')+'</div>';
-if(S.ph=='lobby'){h+='<div class="box">'+(!inS&&S.seats.length<6?'<button data-a="sit">着席する</button>':'')+(inS&&S.seats.length>=2?'<button data-a="start">ゲーム開始</button>':'')+(inS&&S.seats.length<2?'2人以上で開始できます':'')+'</div>'}
-else{h+=`<div class="box"><div class="lb">場札 / 山札${S.deck.length}枚${S.pot?' / 降り賃 '+fm(S.pot):''}</div><div class="row">${S.field.map(c=>chip(c,pending!=null&&c>>2==pending>>2?'pick':'',pending!=null&&c>>2==pending>>2?'pk':'')).join('')}</div></div>`;
-if(S.ph=='decl'){const u=S.ord[S.dc];h+=`<div class="box">宣言中: ${esc(nm(u))}${u==me?`<br><button data-a="go">行く</button><button data-a="drop">降りる(降り賃 ${2*(S.dc+1)}貫)</button>`:''}</div>`}
-if(S.ph=='play'){h+='<div class="box">'+S.go.map((u,i)=>{const cp=S.cap[u]||[];return `<div class="lb">${i==S.tp?'▶ ':''}${esc(nm(u))} 取り札 ${cp.reduce((s,c)=>s+pt(c),0)}点</div><div class="row">${cp.map(c=>chip(c)).join('')}</div>`}).join('')+'</div>'}
-if(S.ph=='res'){const r=S.res||{};h+='<div class="box">'+(r.none?'参加者が足りず流れました':S.go.map(u=>`${esc(nm(u))}: ${r.p[u]}点`).join(' / ')+(r.rev?'<br>25点以下がいるため取り札の精算は逆転':''))+(r.w?`<br>勝者: ${esc(nm(r.w))}(次の親)`:'')+'<br><button data-a="next">次の局へ</button></div>'}
-if(inS&&mine.length){const my=S.ph=='play'&&S.go[S.tp]==me,y=S.ph=='decl'&&mine.length==7?yaku(mine):[];
-h+=`<div class="box"><div class="lb">あなたの手札${y.length?' ─ 手役: '+y.map(x=>x[0]+x[1]+'貫').join(' + '):''}</div><div class="row">${mine.map(c=>chip(c,my?'hand':'',my?'on':'')).join('')}</div></div>`}}
-h+='<div class="box log">'+(S.log||[]).slice(-10).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
+function draw(){if(!S)return;
+const sl=S.slots||[],mine=sl.indexOf(me),my=mine<0?4:mine,inS=mine>=0,mh=(S.hands&&S.hands[me])||[],ph=S.ph,p=S.pend;
+const actor=ph=='decl'?S.ord[S.dc]:ph=='play'?S.go[S.tp]:null,myTurn=actor==me,dealer=S.seats&&S.seats[S.dealer];
+if(!(ph=='play'&&myTurn&&!p))selH=null;
+const mt=selH!=null?S.field.filter(f=>f>>2==selH>>2):[];
+const seat=q=>{const s=(q+my-4+12)%6,u=sl[s];
+if(!u)return `<div class="seat">${ph=='lobby'&&!inS?`<button data-a="sit" data-s="${s}">着席</button>`:'<span style="opacity:.5">空席</span>'}</div>`;
+const isMe=u==me,cp=(S.cap&&S.cap[u])||[];
+let h=`<div class="seat${u==actor?' turn':''}"><b>${esc(nm(u))}</b>${isMe?'(あなた)':''}${u==dealer&&ph!='lobby'?'<span class="oyam">親</span>':''}`;
+if(S.bal&&S.bal[u]!=null)h+=`<br>持ち ${fm(S.bal[u])}`;
+if(S.ord&&['decl','play','res'].includes(ph))h+=S.go.includes(u)?' 行く':(S.ord.indexOf(u)<S.dc?' 降りた':'');
+if(ph=='lobby'&&isMe)h+=`<br><button data-a="leave">席を立つ</button>`;
+if(cp.length)h+=`<div class="row" style="margin-top:4px">${cp.map(c=>img(c,'s')).join('')}</div>`;
+if(isMe&&mh.length){const can=ph=='play'&&myTurn&&!p;
+h+=`<div class="row" style="margin-top:6px">${mh.map(c=>{const has=can&&S.field.some(f=>f>>2==c>>2);return img(c,'h'+(c===selH?' sel':has?' hl':''),can?` data-a="hand" data-c="${c}"`:'')}).join('')}</div>`;
+if(ph=='decl'){const y=yaku(mh);if(y.length)h+=`<div style="margin-top:4px">手役: ${y.map(x=>x[0]+x[1]+'貫').join(' + ')}</div>`}}
+return h+'</div>'};
+let F='';
+if(ph=='lobby'){F=`<div class="msg">着席して、2人以上そろったら「開始」を押してください</div><button data-a="start"${sl.filter(Boolean).length<2||!inS?' disabled':''}>開始</button>`}
+else if(ph=='oya'){F=`<div class="msg">親決め</div><div class="row">${S.seats.map(u=>`<div style="text-align:center">${img(S.oya[u])}<div>${esc(nm(u))}${u==dealer?'<span class="oyam">親</span>':''}</div></div>`).join('')}</div><button data-a="deal">配札する</button>`}
+else{let m='';
+if(ph=='decl')m=`宣言中: ${esc(nm(actor))}`+(myTurn?` <button data-a="go">行く</button><button data-a="drop">降りる(降り賃 ${2*(S.dc+1)}貫)</button>`:'');
+else if(ph=='play'){if(!myTurn)m=`${esc(nm(actor))} さんの番です`;
+else if(!p)m=selH==null?'手札を1枚選んでください':(mt.length?'マッチする場札を選んでください':'マッチする札がありません <button data-a="discard">捨てる</button><button data-a="cancel">キャンセル</button>');
+else if(p.st=='flip')m='山札をめくります…';else if(p.st=='pickd')m='どちらかを選んでください';else if(p.st=='collect')m='<button data-a="collect">回収</button>'}
+else if(ph=='res'){const r=S.res||{};m=(r.none?'参加者が足りず流れました':S.go.map(u=>`${esc(nm(u))}: ${r.p[u]}点`).join(' / ')+(r.rev?'(25点以下がいるため取り札の精算は逆転)':''))+(r.w?` 勝者: ${esc(nm(r.w))}`:'')+' <button data-a="next">次の局へ</button>'}
+const fl=S.field.map(f=>{let x='',a='';
+if(ph=='play'&&myTurn&&!p&&mt.includes(f)){x=' hl';a=' data-a="fpick" data-c="'+f+'"'}
+if(p&&p.st=='pickd'&&myTurn&&p.cand.includes(f)){x=' hl';a=' data-a="dpick" data-c="'+f+'"'}
+let o='';if(p&&p.hm&&p.hm[0]===f)o+=`<div class="ov">${img(p.h)}</div>`;if(p&&p.d!=null&&p.dm&&p.dm[0]===f)o+=`<div class="ov2">${img(p.d)}</div>`;
+return `<div class="fc">${img(f,x.trim(),a)}${o}</div>`}).join('');
+F=`<div class="msg">${m}</div><div class="row">${fl}</div><div style="margin-top:6px;opacity:.6">山札 ${S.deck.length}枚${S.pot?' / 降り賃 '+fm(S.pot):''}${S.tax?' / 税金 '+S.tax+'つ':''}</div>`}
+let h='<h1>八八</h1><div class="tbl">'+[0,1,2].map(seat).join('')+`<div class="field">${F}</div>`+[5,4,3].map(seat).join('')+'</div>';
+h+='<div class="box log">'+(S.log||[]).slice(-8).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
 h+='<div class="box"><div class="chat">'+C.slice(-30).map(m=>`<div><b>${esc(nm(m.u))}</b>: ${esc(m.t)}</div>`).join('')+'</div><input id="ci" maxlength="120" placeholder="発言"><button data-a="chat">送信</button></div>';
-const ci=document.getElementById('ci'),v=ci?ci.value:'';app.innerHTML=h;if(v){const n=document.getElementById('ci');n.value=v}}
+const ci=document.getElementById('ci'),v=ci?ci.value:'';app.innerHTML=h;if(v)document.getElementById('ci').value=v;
+if(ph=='play'&&p&&p.st=='flip'&&myTurn&&flipId!=p.id){flipId=p.id;setTimeout(flip,900)}}
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
-if(a=='sit')mut(n=>{if(!n.seats.includes(me)&&n.seats.length<6)n.seats.push(me)});
-if(a=='start')mut(n=>{n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];let cd=n.seats.map((_,i)=>i);while(cd.length>1){const d=sh(ALL),v=cd.map((_,i)=>pt(d[i])),m=Math.max(...v);cd=cd.filter((_,i)=>v[i]==m)}nr(n,cd[0])});
+if(a=='sit')mut(n=>{if(!n.slots.includes(me))n.slots[+b.dataset.s]=me});
+if(a=='leave')mut(n=>{n.slots=n.slots.map(u=>u==me?null:u)});
+if(a=='start')mut(n=>{n.seats=[5,4,3,2,1,0].map(i=>n.slots[i]).filter(Boolean);if(n.seats.length<2)return;n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];
+let cd=n.seats.map((_,i)=>i),dr={};while(cd.length>1){const d=sh(ALL);dr={};n.seats.forEach((u,i)=>dr[u]=d[i]);const v=cd.map(i=>pt(dr[n.seats[i]])),m=Math.max(...v);cd=cd.filter((_,k)=>v[k]==m)}
+n.oya=dr;n.dealer=cd[0];n.ph='oya'});
+if(a=='deal')mut(n=>nr(n,n.dealer));
 if(a=='go'||a=='drop')dec(a=='go');
-if(a=='hand'&&S.ph=='play'&&S.go[S.tp]==me){if(S.field.filter(f=>f>>2==c>>2).length==2){pending=c;draw()}else play(c)}
-if(a=='pick'){const c0=pending;pending=null;play(c0,c)}
+if(a=='hand'){selH=selH===c?null:c;draw()}
+if(a=='cancel'){selH=null;draw()}
+if(a=='discard'){const h=selH;selH=null;hcommit(h,[])}
+if(a=='fpick'){const M=S.field.filter(f=>f>>2==selH>>2),h=selH;selH=null;hcommit(h,M.length==2?[c]:M)}
+if(a=='dpick')mut(n=>{n.pend.dm=[c];n.pend.st='collect';delete n.pend.cand});
+if(a=='collect')collect();
 if(a=='next')mut(n=>nr(n,n.nd));
 if(a=='chat'){const i=document.getElementById('ci'),t=i.value.trim();if(t){C=C.concat([{u:me,t}]).slice(-60);i.value='';draw();set(R('c'),JSON.stringify(C))}}});
-onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();pending=null;draw()});
+onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();if(!S.slots)S.slots=[null,null,null,null,null,null];draw()});
 onValue(R('c'),s=>{C=s.exists()?JSON.parse(s.val()):[];if(S)draw()});
 onValue(R('n'),s=>{names=s.val()||{};if(S)draw()});
 })();
