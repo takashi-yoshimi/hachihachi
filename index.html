@@ -47,7 +47,9 @@ const FB=window.FBCFG||{};
 const MN=['松','梅','桜','藤','菖','牡','萩','芒','菊','紅','柳','桐'],LY=['HNKK','TNKK','HNKK','TNKK','TNKK','TNKK','TNKK','HTKK','TNKK','TNKK','HTNK','HKKK'],PT={H:20,T:10,N:5,K:1},TL={H:'光',T:'タネ',N:'短',K:'カス'};
 const ty=c=>LY[c>>2][c&3],pt=c=>PT[ty(c)],lab=c=>MN[c>>2]+TL[ty(c)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const mb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const K=(n,x)=>((n.seed|0)*31+x)|0;
+const sh=(a,k)=>{const r=k==null?Math.random:mb(k);a=a.slice();for(let i=a.length-1;i>0;i--){const j=r()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const fm=v=>(v<0?'-':'')+(Math.abs(v)/12|0)+'貫'+Math.abs(v)%12+'つ';
 const T=u=>'\u0001'+u+'\u0002',ALL=[...Array(48).keys()];
 const app=document.getElementById('app');
@@ -60,7 +62,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName);
-let S=null,C=[],names={},pending=null;
+let S=null,C=[],names={},pending=null;const APPV=6;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -82,9 +84,9 @@ if(s=='43'||s=='322')return{up:h,dn:[]};
 if(s=='421'||s=='2221')return U([].concat(...mo.map(by)));
 if(s=='331')return U([].concat(...mo.filter(m=>q[m]==3).map(by)));
 return{up:[].concat(...mo.filter(m=>q[m]>=3).map(by)),dn:[]}}
-function nr(n,di){let d,f,c;do{d=sh(ALL);f=d.splice(0,6);c={};f.forEach(x=>c[x>>2]=(c[x>>2]||0)+1)}while(Object.values(c).some(v=>v==4));
-n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.oya=null;n.pend=null;n.chg={};n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
-function fin(n){for(let i=n.dc;i<n.ord.length;i++){const u=n.ord[i];n.deck.push(...n.hands[u]);n.hands[u]=[]}n.dc=n.ord.length;n.deck=sh(n.deck);
+function nr(n,di){let d,f,c,t=0;do{d=sh(ALL,K(n,(n.round+1)*100+t++));f=d.splice(0,6);c={};f.forEach(x=>c[x>>2]=(c[x>>2]||0)+1)}while(Object.values(c).some(v=>v==4));
+n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.oya=null;n.pend=null;n.chg={};n.hy={};n.rev={};n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
+function fin(n){for(let i=n.dc;i<n.ord.length;i++){const u=n.ord[i];n.deck.push(...n.hands[u]);n.hands[u]=[]}n.dc=n.ord.length;n.deck=sh(n.deck,K(n,n.round*100+90));
 if(n.go.length<2){const w=n.go[0];if(w)ad(n,w,n.pot,'pot');n.pot=0;n.ph='res';n.res={none:1,w:w||null};n.nd=w?n.seats.indexOf(w):n.dealer;return}
 n.hy={};n.rev={};n.go.forEach(a=>{const y=yaku(n.hands[a]),k=y.reduce((s,x)=>s+x[1],0);if(k){n.hy[a]=y;n.rev[a]=layout(n.hands[a]);n.log.push(T(a)+' 手役 '+y.map(x=>x[0]).join('+')+' '+k+'貫')}});n.ph='play';n.tp=0}
 function settle(n){const p={};n.go.forEach(u=>p[u]=(n.cap[u]||[]).reduce((s,c)=>s+pt(c),0));const w=n.go.reduce((a,b)=>p[b]>p[a]?b:a);let rev=0;
@@ -136,14 +138,14 @@ const seat=q=>{const s=(q+my-4+12)%6,u=sl[s];
 if(!u)return `<div class="seat">${ph=='lobby'&&!inS?`<button data-a="sit" data-s="${s}">着席</button>`:'<span style="opacity:.5">空席</span>'}</div>`;
 return box(u)};
 let F='';
-if(ph=='lobby'){F=`<div class="msg">着席して、2人以上そろったら「開始」を押してください</div><button data-a="start"${sl.filter(Boolean).length<2||!inS?' disabled':''}>開始</button>`}
+if(ph=='lobby'){F=`<div class="msg">着席して、2人以上そろったら「開始」を押してください</div><input id="sd" placeholder="seed(空欄で自動)" value="${esc(sdv)}" style="width:150px"> <button data-a="start"${sl.filter(Boolean).length<2||!inS?' disabled':''}>開始</button>`}
 else if(ph=='oya'){F=`<div class="msg">親決め</div><div class="row">${S.seats.map(u=>`<div style="text-align:center">${img(S.oya[u])}<div>${esc(nm(u))}${u==dealer?'<span class="oyam">親</span>':''}</div></div>`).join('')}</div><button data-a="deal">配札する</button>`}
 else{let m='';
 if(ph=='decl')m=`宣言中: ${esc(nm(actor))}`;
 else if(ph=='play'){if(!myTurn)m=`${esc(nm(actor))} さんの番です`;
 else if(!p)m=selH==null?'手札を1枚選んでください':(mt.length?'マッチする場札を選んでください':'マッチする札がありません <button data-a="discard">捨てる</button><button data-a="cancel">キャンセル</button>');
 else if(p.st=='flip')m='山札をクリックしてめくってください';else if(p.st=='shown')m='めくった札をクリックしてください';else if(p.st=='pickd')m='どちらかを選んでください';else if(p.st=='collect')m='<button data-a="collect">回収</button>'}
-else if(ph=='res'){const r=S.res||{},ch=S.chg||{},KN={fee:'降り賃',pot:'降り賃受取',pt:'点数',hy:'手役',tax:'税金'},fs=v=>v==0?'±0つ':(v>0?'+':'')+fm(v);
+else if(ph=='res'){const r=S.res||{},ch=S.chg||{},KN={fee:'降り賃',pot:'降り賃受取',pt:'点数',hy:'手役',tax:'税金'},fs=v=>{if(v==0)return '±0つ';const a=Math.abs(v),b=a/12|0,t=a%12;return (v<0?'-':'+')+(b?b+'貫':'')+(t?t+'つ':'')};
 m=(r.none?'参加者が足りず流れました':S.seats.map(u=>{const c=ch[u]||{},tot=Object.values(c).reduce((a,b)=>a+b,0),pp=r.p&&r.p[u];
 return `<div>${esc(nm(u))}: ${pp!=null?pp+'点; '+(pp>=88?'+':'')+(pp-88)+'点; ':''}${fs(tot)}(${Object.keys(c).filter(k=>c[k]).map(k=>KN[k]+' '+fs(c[k])).join(', ')||'なし'}) 残額 ${fm(S.bal[u])}</div>`}).join('')+(r.rev?'<div>25点以下がいるため取り札の精算は逆転</div>':''))+' <button data-a="next">次の局へ</button>'}
 const fl=S.field.map(f=>{let x='',a='';
@@ -156,21 +158,23 @@ const pile=`<div class="pile"><div class="stack${canP?' hl':''}"${canP?' data-a=
 const dots=[0,1].map(r=>'<div>'+[0,1,2,3,4,5].map(i=>`<span class="dot${r*6+i<(S.tax||0)?' on':''}"></span>`).join('')+'</div>').join('');
 F=`<div class="msg">${m}</div><div class="fl"><div class="row" style="flex:1">${fl}</div>${pile}</div><div class="tax">${dots}</div>`}
 const playing=(ph=='play'||ph=='res')&&S.go&&S.go.length;
-let h='<h1>八八</h1>';
+const od=sl.filter(Boolean).filter(u=>vers[u]!==APPV);
+let h='<h1>八八</h1>'+(od.length?'<div class="box" style="background:#fdd;color:#900">版が異なる人がいます: '+od.map(u=>esc(nm(u))).join(', ')+' → そのブラウザで Ctrl+F5(強制再読み込み)をしてください</div>':'');
 if(playing){const gp=S.go,i=gp.indexOf(me),n3=gp.length;
 const oth=i<0?gp.slice().reverse():(n3==3?[gp[(i+2)%3],gp[(i+1)%3]]:gp.filter(u=>u!=me));
 h+=`<div class="top">${oth.map(box).join('')}</div><div class="field">${F}</div>`+(i>=0?box(me):`<div class="seat">見学中: ${esc(nm(me))}</div>`)}
 else h+='<div class="tbl">'+[0,1,2].map(seat).join('')+`<div class="field">${F}</div>`+[5,4,3].map(seat).join('')+'</div>';
 h+='<div class="box log">'+(S.log||[]).slice(-8).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
 h+='<div class="box"><div class="chat">'+C.slice(-30).map(m=>`<div><b>${esc(nm(m.u))}</b>: ${esc(m.t)}</div>`).join('')+'</div><input id="ci" maxlength="120" placeholder="発言"><button data-a="chat">送信</button></div>';
-const ci=document.getElementById('ci'),v=ci?ci.value:'';app.innerHTML=h;if(v)document.getElementById('ci').value=v}
+const ci=document.getElementById('ci'),v=ci?ci.value:'';h+=`<div style="opacity:.5;text-align:right">版 ${APPV}${S.seed!=null?' / seed '+S.seed+' / 第'+S.round+'局':''}</div>`;app.innerHTML=h;if(v)document.getElementById('ci').value=v}
 
+document.addEventListener('input',e=>{if(e.target.id=='sd')sdv=e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
 if(a=='sit')mut(n=>{if(!n.slots.includes(me))n.slots[+b.dataset.s]=me});
 if(a=='leave')mut(n=>{n.slots=n.slots.map(u=>u==me?null:u)});
-if(a=='start')mut(n=>{n.seats=[5,4,3,2,1,0].map(i=>n.slots[i]).filter(Boolean);if(n.seats.length<2)return;n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];
-let cd=n.seats.map((_,i)=>i),dr={};while(cd.length>1){const d=sh(ALL);dr={};n.seats.forEach((u,i)=>dr[u]=d[i]);const v=cd.map(i=>pt(dr[n.seats[i]])),m=Math.max(...v);cd=cd.filter((_,k)=>v[k]==m)}
-n.oya=dr;n.dealer=cd[0];n.ph='oya'});
+if(a=='start'){const si=sdv.trim(),sd=/^\d+$/.test(si)?+si:Math.random()*1e9|0;mut(n=>{n.seed=sd;n.seats=[5,4,3,2,1,0].map(i=>n.slots[i]).filter(Boolean);if(n.seats.length<2)return;n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];
+let cd=n.seats.map((_,i)=>i),dr={},tt=0;while(cd.length>1){const d=sh(ALL,K(n,tt++));dr={};n.seats.forEach((u,i)=>dr[u]=d[i]);const v=cd.map(i=>pt(dr[n.seats[i]])),m=Math.max(...v);cd=cd.filter((_,k)=>v[k]==m)}
+n.oya=dr;n.dealer=cd[0];n.ph='oya';n.log.push('seed: '+sd)})}
 if(a=='deal')mut(n=>nr(n,n.dealer));
 if(a=='go'||a=='drop')dec(a=='go');
 if(a=='hand'){selH=selH===c?null:c;draw()}
@@ -186,5 +190,6 @@ if(a=='chat'){const i=document.getElementById('ci'),t=i.value.trim();if(t){C=C.c
 onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();if(!S.slots)S.slots=[null,null,null,null,null,null];draw()});
 onValue(R('c'),s=>{C=s.exists()?JSON.parse(s.val()):[];if(S)draw()});
 onValue(R('n'),s=>{names=s.val()||{};if(S)draw()});
+onValue(R('v'),s=>{vers=s.val()||{};if(S)draw()});
 })();
 </script></body></html>
