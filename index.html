@@ -27,7 +27,7 @@ h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter
 .fl{display:flex;gap:10px;align-items:flex-start}.pile{width:60px;text-align:center;font-size:11px}
 .stack .bk{width:56px;height:93px;box-shadow:2px 2px 0 #4a3626,4px 4px 0 #3a2a1c,6px 6px 0 #2a1d12}.stack.hl{display:inline-block}
 .tax{margin-top:6px;line-height:1}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid #222;margin:1px 3px 1px 0}.dot.on{background:#111}
-.rv{position:relative;flex:1 1 0;min-width:0;max-width:42px}.rv .cd{width:100%;max-width:none;height:auto;aspect-ratio:3/5}
+.rv.m{max-width:64px}.rv{position:relative;flex:1 1 0;min-width:0;max-width:42px}.rv .cd{width:100%;max-width:none;height:auto;aspect-ratio:3/5}
 .rv::before{content:'OPEN';position:absolute;top:0;left:0;right:0;text-align:center;font-size:8px;font-weight:bold;color:#d00;background:rgba(255,255,255,.85);z-index:1;line-height:12px}
 .stack{position:relative;display:inline-block}.stack .up{position:absolute;left:3px;top:3px}
 .gs{display:inline-flex;margin-right:12px}.gs .fc{margin-right:0}.gs .fc+.fc{margin-left:-34px}
@@ -68,7 +68,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName);
-let S=null,C=[],names={},pending=null;const APPV=8;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+let S=null,C=[],names={},pending=null;const APPV=9;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -81,6 +81,7 @@ const P={43:['四三',20],421:['一二四',18],331:['二三本',14],322:['二二
 if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){let b=4;const m=+Object.keys(q).find(x=>q[x]==3);if([3,4,6].includes(m)||(m==11&&!h.some(c=>c>>2==11&&c%4==0)))b+=2;r.push(['三本',b])}
 return r}
 
+const jbc=(h0,cap)=>{const c3={};h0.forEach(c=>c3[c>>2]=(c3[c>>2]||0)+1);let j=0;Object.keys(c3).forEach(m=>{if(c3[m]==3){const f=[0,1,2,3].map(x=>m*4+x).find(c=>!h0.includes(c));if(cap.includes(f))j++}});return j};
 const ad=(n,u,v,k)=>{n.bal[u]=(n.bal[u]||0)+v;n.chg=n.chg||{};(n.chg[u]=n.chg[u]||{})[k]=(n.chg[u][k]||0)+v};
 function layout(h){const e=h.map(c=>(c>>2)==10?'K':ty(c)),K=h.filter((c,i)=>e[i]=='K'),O=h.filter((c,i)=>e[i]!='K'),Nn=e.filter(t=>t=='N').length,q={};h.forEach(c=>q[c>>2]=(q[c>>2]||0)+1);
 const s=Object.values(q).sort((a,b)=>b-a).join(''),mo=Object.keys(q).filter(m=>q[m]>=2),by=m=>h.filter(c=>c>>2==m),L=[],rest=u=>h.filter(c=>!u.includes(c));
@@ -102,7 +103,7 @@ if(n.go.length==2){const[a,b]=n.go,d=Math.abs(p[a]-p[b])*2;if(d){ad(n,w,d,'pt');
 else{rev=Math.min(...n.go.map(u=>p[u]))<=25?-1:1;n.go.forEach(u=>ad(n,u,rev*(p[u]-88)*2,'pt'))}
 const NU=['カラス','十べ','丹べ','赤'],hy=n.hy||{},hn=n.go.filter(a=>hy[a]&&hy[a].some(x=>NU.includes(x[0]))),nk=a=>n.go.length==3?p[a]>88:a==w,cn=n.go.length==3&&hn.length==2&&!hn.some(nk);
 n.go.forEach(a=>(hy[a]||[]).forEach(x=>{let k=x[1];if(NU.includes(x[0])){if(cn)k=0;else if(nk(a))k+=2}if(k)n.go.forEach(b=>{if(b!=a){ad(n,a,12*k,'hy');ad(n,b,-12*k,'hy')}})}));
-n.go.forEach(a=>{const h0=(n.h0||{})[a]||[],c3={};h0.forEach(c=>c3[c>>2]=(c3[c>>2]||0)+1);let jb=0;Object.keys(c3).forEach(m=>{if(c3[m]==3){const f=[0,1,2,3].map(j=>m*4+j).find(c=>!h0.includes(c));if((n.cap[a]||[]).includes(f))jb++}});if(jb){n.log.push(T(a)+' 飛び込み +'+2*jb+'貫');n.go.forEach(b=>{if(b!=a){ad(n,a,24*jb,'hy');ad(n,b,-24*jb,'hy')}})}});
+n.go.forEach(a=>{const jb=jbc((n.h0||{})[a]||[],n.cap[a]||[]);if(jb){n.log.push(T(a)+' 飛び込み +'+2*jb+'貫');n.go.forEach(b=>{if(b!=a){ad(n,a,24*jb,'hy');ad(n,b,-24*jb,'hy')}})}});
 ad(n,w,n.pot,'pot');ad(n,w,-1,'tax');n.tax=(n.tax||0)+1;n.pot=0;n.ph='res';n.res={p,w,rev:rev<0};n.nd=n.seats.indexOf(w)}
 const dec=go=>mut(n=>{const u=n.ord[n.dc];if(go)n.go.push(u);else{const f=24*(n.dc+1);ad(n,u,-f,'fee');n.pot+=f;n.deck.push(...n.hands[u]);n.hands[u]=[]}
 n.log.push(T(u)+(go?' 行く':' 降りる'));n.dc++;if(n.go.length==3||n.dc>=n.ord.length)fin(n)});
@@ -128,14 +129,14 @@ if(!(ph=='play'&&myTurn&&!p))selH=null;
 const mt=selH!=null?S.field.filter(f=>f>>2==selH>>2):[],so=a=>a.slice().sort((x,y)=>x-y),ORD=['一人目','二人目','三人目'];
 const bk=x=>`<div class="cd bk ${x||''}"></div>`;
 const hrow=u=>{const hd=(S.hands&&S.hands[u])||[];if(!hd.length)return '';
-if(u==me){const can=ph=='play'&&myTurn&&!p;return `<div class="hand">${so(hd).map(c=>{const has=can&&S.field.some(f=>f>>2==c>>2);return img(c,c===selH?'sel':has?'hl':'',can?` data-a="hand" data-c="${c}"`:'')}).join('')}</div>`}
+if(u==me){const can=ph=='play'&&myTurn&&!p;const ru=new Set(((S.rev&&S.rev[me])||{}).up||[]);return `<div class="hand">${so(hd).map(c=>{const has=can&&S.field.some(f=>f>>2==c>>2),im=img(c,c===selH?'sel':has?'hl':'',can?` data-a="hand" data-c="${c}"`:'');return ru.has(c)?`<div class="rv m">${im}</div>`:im}).join('')}</div>`}
 const rv=(S.rev&&S.rev[u])||{up:[],dn:[]},up=so(hd.filter(c=>rv.up.includes(c))),dn=hd.filter(c=>rv.dn.includes(c)),rest=hd.length-up.length-dn.length;
-const op=c=>`<div class="rv">${img(c,'o')}</div>`,ku=up.filter(c=>c!==rv.ctr),hf=Math.ceil(ku.length/2),dd=dn.map(()=>bk('o')).join(''),ct=rv.mid&&hd.includes(rv.ctr)?(up.includes(rv.ctr)?op(rv.ctr):bk('o')):'';
+const op=c=>img(c,'o'),ku=up.filter(c=>c!==rv.ctr),hf=Math.ceil(ku.length/2),dd=dn.map(()=>bk('o')).join(''),ct=rv.mid&&hd.includes(rv.ctr)?(up.includes(rv.ctr)?op(rv.ctr):bk('o')):'';
 return `<div class="hand">${rv.mid?ku.slice(0,hf).map(op).join('')+ct+ku.slice(hf).map(op).join(''):up.map(op).join('')+dd}${Array.from({length:rest},()=>bk('o')).join('')}</div>`};
 const box=u=>{const isMe=u==me,cp=so((S.cap&&S.cap[u])||[]),hy=S.hy&&S.hy[u],gi=S.go?S.go.indexOf(u):-1;
 let h=`<div class="seat${u==actor?' turn':''}"><b>${esc(nm(u))}</b>${isMe?'(あなた)':''}${u==dealer&&ph!='lobby'?'<span class="oyam">親</span>':''}`;
 if(gi>=0&&['decl','play','res'].includes(ph))h+=`<span class="ord">${ORD[gi]}</span>`;
-if(hy)h+=` <span class="hyn">${hy.map(x=>x[0]).join('+')} ${hy.reduce((s,x)=>s+x[1],0)}貫</span>`;
+if(hy){const jb=jbc((S.h0&&S.h0[u])||[],cp);h+=` <span class="hyn">${hy.map(x=>x[0]).join('+')}${jb?'(飛び込み)':''} ${hy.reduce((s,x)=>s+x[1],0)+2*jb}貫</span>`}
 if(S.bal&&S.bal[u]!=null)h+=`<br>持ち ${fm(S.bal[u])}`;
 if(S.ord&&['decl','play','res'].includes(ph)&&gi<0&&S.ord.indexOf(u)<S.dc)h+=' 降りた';
 if(ph=='lobby'&&isMe)h+=`<br><button data-a="leave">席を立つ</button>`;
