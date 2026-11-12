@@ -3,9 +3,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>八八 ─ 花札オンライン</title>
 <style>
-:root{--bg:#e9e2cc;--pn:#f6f0dc;--tx:#2a251b;--gd:#8a6d1c;--ln:rgba(138,109,28,.4);--bt:#fff8de;--hi:#fff0b3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a}}
-:root[data-theme="dark"]{--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a}
+:root{--bg:#e9e2cc;--pn:#f6f0dc;--tx:#2a251b;--gd:#8a6d1c;--ln:rgba(138,109,28,.4);--bt:#fff8de;--hi:#fff0b3;--hb:#d6e6fa;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a;--hb:#2b4a6e}}
+:root[data-theme="dark"]{--bg:#0f2e24;--pn:#173a2d;--tx:#f3ecd8;--gd:#d9be5f;--ln:rgba(217,190,95,.35);--bt:#1f4a39;--hi:#3c5a2a;--hb:#2b4a6e}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--tx);font-family:"Hiragino Sans","Yu Gothic",sans-serif;font-size:13px}
 #app{max-width:1000px;margin:0 auto;padding:10px}
@@ -19,7 +19,7 @@ h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter
 .row{display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start}
 .cd{width:50px;height:83px;border-radius:4px;display:block;box-shadow:0 1px 3px rgba(0,0,0,.45);background:#ddd}
 .cd.s{width:42px;height:70px}
-.hand{display:flex;flex-wrap:nowrap;gap:3px;margin-top:4px}
+.hand{display:flex;flex-wrap:nowrap;gap:3px;margin-top:4px;padding:4px;background:var(--hb);border-radius:6px}
 .hand .cd{flex:1 1 0;min-width:0;max-width:64px;width:100%;height:auto;aspect-ratio:3/5}
 .hand .cd.o{max-width:42px}
 .hand .cd.sd{flex:0 0 auto;width:70px;height:42px;max-width:none;aspect-ratio:auto;align-self:center}
@@ -69,7 +69,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName);
-let S=null,C=[],names={},pending=null;const APPV=10;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+let S=null,C=[],names={},pending=null;const APPV=11;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
