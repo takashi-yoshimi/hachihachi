@@ -22,6 +22,7 @@ h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter
 .hand{display:flex;flex-wrap:nowrap;gap:3px;margin-top:4px}
 .hand .cd{flex:1 1 0;min-width:0;max-width:64px;width:100%;height:auto;aspect-ratio:3/5}
 .hand .cd.o{max-width:42px}
+.hand .cd.sd{flex:0 0 auto;width:70px;height:42px;max-width:none;aspect-ratio:auto;align-self:center}
 .bk{background:repeating-linear-gradient(45deg,#3a2a1c 0 4px,#4a3626 4px 8px);border:2px solid #c9a227;box-sizing:border-box}
 .hyn{color:#c0392b;font-weight:bold}
 .fl{display:flex;gap:10px;align-items:flex-start}.pile{width:60px;text-align:center;font-size:11px}
@@ -68,7 +69,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName);
-let S=null,C=[],names={},pending=null;const APPV=9;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+let S=null,C=[],names={},pending=null;const APPV=10;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -78,7 +79,7 @@ function yaku(h){const e=h.map(c=>(c>>2)==10?'K':ty(c)),k=e.filter(t=>t=='K').le
 if(k==7)r.push(['カラス',10]);else if(k==6){const o=e.find(t=>t!='K');r.push(o=='H'?['光一',8]:o=='T'?['十べ',6]:['丹べ',6])}else if(k+n==7&&n>=2)r.push(['赤',6]);
 const q={};h.forEach(c=>q[c>>2]=(q[c>>2]||0)+1);const s=Object.values(q).sort((a,b)=>b-a).join('');
 const P={43:['四三',20],421:['一二四',18],331:['二三本',14],322:['二二三',12],2221:['くっつき',8]};
-if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){let b=4;const m=+Object.keys(q).find(x=>q[x]==3);if([3,4,6].includes(m)||(m==11&&!h.some(c=>c>>2==11&&c%4==0)))b+=2;r.push(['三本',b])}
+if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){let b=4;const m=+Object.keys(q).find(x=>q[x]==3);if([3,4,6].includes(m)||(m==11&&!h.some(c=>c>>2==11&&c%4==0)))b+=2;r.push([b>4?'立て三':'三本',b])}
 return r}
 
 const jbc=(h0,cap)=>{const c3={};h0.forEach(c=>c3[c>>2]=(c3[c>>2]||0)+1);let j=0;Object.keys(c3).forEach(m=>{if(c3[m]==3){const f=[0,1,2,3].map(x=>m*4+x).find(c=>!h0.includes(c));if(cap.includes(f))j++}});return j};
@@ -94,16 +95,22 @@ let up=[...new Set(L.flatMap(x=>x.up))],dn=[...new Set(L.flatMap(x=>x.dn))].filt
 const mid=K.length==6&&ty(O[0])=='H';
 return{up,dn,mid,ctr:mid?O[0]:null}}
 function nr(n,di){let d,f,c,t=0;do{d=sh(ALL,K(n,(n.round+1)*100+t++));f=d.splice(0,6);c={};f.forEach(x=>c[x>>2]=(c[x>>2]||0)+1)}while(Object.values(c).some(v=>v==4));
-n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.oya=null;n.pend=null;n.chg={};n.hy={};n.rev={};n.h0={};n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
+n.hands={};n.seats.forEach(u=>n.hands[u]=d.splice(0,7));n.field=f;n.deck=d;n.dealer=di;n.ord=n.seats.map((_,i)=>n.seats[(di+i)%n.seats.length]);n.dc=0;n.go=[];n.pot=0;n.cap={};n.ph='decl';n.round++;n.res=null;n.oya=null;n.pend=null;n.chg={};n.hy={};n.rev={};n.h0={};n.dk=null;n.dkq=null;n.log.push('第'+n.round+'局 親:'+T(n.ord[0]))}
 function fin(n){for(let i=n.dc;i<n.ord.length;i++){const u=n.ord[i];n.deck.push(...n.hands[u]);n.hands[u]=[]}n.dc=n.ord.length;n.deck=sh(n.deck,K(n,n.round*100+90));
 if(n.go.length<2){const w=n.go[0];if(w)ad(n,w,n.pot,'pot');n.pot=0;n.ph='res';n.res={none:1,w:w||null};n.nd=w?n.seats.indexOf(w):n.dealer;return}
 n.hy={};n.rev={};n.h0={};n.go.forEach(a=>{n.h0[a]=n.hands[a].slice();const y=yaku(n.hands[a]),k=y.reduce((s,x)=>s+x[1],0);if(k){n.hy[a]=y;n.rev[a]=layout(n.hands[a]);n.log.push(T(a)+' 手役 '+y.map(x=>x[0]).join('+')+' '+k+'貫')}});n.ph='play';n.tp=0}
+function hyPay(n,p,w,full){const NU=['カラス','十べ','丹べ','赤'],hy=n.hy||{},hn=n.go.filter(a=>hy[a]&&hy[a].some(x=>NU.includes(x[0]))),nk=a=>n.go.length==3?p[a]>88:a==w,cn=full&&n.go.length==3&&hn.length==2&&!hn.some(nk);
+n.go.forEach(a=>(hy[a]||[]).forEach(x=>{let k=x[1];if(NU.includes(x[0])){if(cn)k=0;else if(full&&nk(a))k+=2}if(k)n.go.forEach(b=>{if(b!=a){ad(n,a,12*k,'hy');ad(n,b,-12*k,'hy')}})}));
+n.go.forEach(a=>{const jb=jbc((n.h0||{})[a]||[],n.cap[a]||[]);if(jb){n.log.push(T(a)+' 飛び込み +'+2*jb+'貫');n.go.forEach(b=>{if(b!=a){ad(n,a,24*jb,'hy');ad(n,b,-24*jb,'hy')}})}})}
+const DK=[['猪鹿蝶',14,[24,36,20]],['赤丹',14,[1,5,9]],['青丹',14,[21,33,37]]];
+function deki(cp){const r=[],has=a=>a.every(c=>cp.includes(c));if(has([0,8,28,40,44]))r.push(['五光',20]);else if(has([0,8,28,44]))r.push(['四光',16]);DK.forEach(([nm,k,a])=>{if(has(a))r.push([nm,k])});return r}
+function endDk(n,u,total,txt){const p={};n.go.forEach(x=>p[x]=(n.cap[x]||[]).reduce((s,c)=>s+pt(c),0));
+n.go.forEach(b=>{if(b!=u){ad(n,u,12*total,'dk');ad(n,b,-12*total,'dk')}});
+hyPay(n,p,u,false);ad(n,u,n.pot,'pot');ad(n,u,-1,'tax');n.tax=(n.tax||0)+1;n.pot=0;n.ph='res';n.res={p,w:u,dk:txt+' '+total+'貫'};n.nd=n.seats.indexOf(u);n.pend=null;n.dkq=null;n.dk=null;n.log.push(T(u)+' でき役 '+txt+' で終了('+total+'貫)')}
 function settle(n){const p={};n.go.forEach(u=>p[u]=(n.cap[u]||[]).reduce((s,c)=>s+pt(c),0));const w=n.go.reduce((a,b)=>p[b]>p[a]?b:a);let rev=0;
 if(n.go.length==2){const[a,b]=n.go,d=Math.abs(p[a]-p[b])*2;if(d){ad(n,w,d,'pt');ad(n,w==a?b:a,-d,'pt')}}
 else{rev=Math.min(...n.go.map(u=>p[u]))<=25?-1:1;n.go.forEach(u=>ad(n,u,rev*(p[u]-88)*2,'pt'))}
-const NU=['カラス','十べ','丹べ','赤'],hy=n.hy||{},hn=n.go.filter(a=>hy[a]&&hy[a].some(x=>NU.includes(x[0]))),nk=a=>n.go.length==3?p[a]>88:a==w,cn=n.go.length==3&&hn.length==2&&!hn.some(nk);
-n.go.forEach(a=>(hy[a]||[]).forEach(x=>{let k=x[1];if(NU.includes(x[0])){if(cn)k=0;else if(nk(a))k+=2}if(k)n.go.forEach(b=>{if(b!=a){ad(n,a,12*k,'hy');ad(n,b,-12*k,'hy')}})}));
-n.go.forEach(a=>{const jb=jbc((n.h0||{})[a]||[],n.cap[a]||[]);if(jb){n.log.push(T(a)+' 飛び込み +'+2*jb+'貫');n.go.forEach(b=>{if(b!=a){ad(n,a,24*jb,'hy');ad(n,b,-24*jb,'hy')}})}});
+hyPay(n,p,w,true);
 ad(n,w,n.pot,'pot');ad(n,w,-1,'tax');n.tax=(n.tax||0)+1;n.pot=0;n.ph='res';n.res={p,w,rev:rev<0};n.nd=n.seats.indexOf(w)}
 const dec=go=>mut(n=>{const u=n.ord[n.dc];if(go)n.go.push(u);else{const f=24*(n.dc+1);ad(n,u,-f,'fee');n.pot+=f;n.deck.push(...n.hands[u]);n.hands[u]=[]}
 n.log.push(T(u)+(go?' 行く':' 降りる'));n.dc++;if(n.go.length==3||n.dc>=n.ord.length)fin(n)});
@@ -120,7 +127,13 @@ const shownClick=()=>mut(n=>{const p=n.pend;if(!p||p.st!='shown')return;const d=
 if(M.length==2){p.cand=M;p.st='pickd';p.dm=[]}else if(M.length==0){p.dm=[];n.field.push(d);p.st='collect'}else{p.dm=M;p.st='collect'}});
 const collect=()=>mut(n=>{const u=n.go[n.tp],p=n.pend,g=[];if(p.hm.length)g.push(p.h,...p.hm);if(p.d!=null&&p.dm&&p.dm.length)g.push(p.d,...p.dm);
 n.cap[u]=(n.cap[u]||[]).concat(g);n.field=n.field.filter(f=>!g.includes(f));n.pend=null;
-if(n.go.every(x=>!n.hands[x].length))settle(n);else n.tp=(n.tp+1)%n.go.length});
+const all=deki(n.cap[u]),dk=n.dk,mine=dk&&dk.u==u,fresh=all.filter(x=>!(mine&&dk.names.includes(x[0]))),k2=fresh.reduce((a,x)=>a+x[1],0),done=n.go.every(x=>!n.hands[x].length),nms=fresh.map(x=>x[0]);
+if(mine&&fresh.length){endDk(n,u,dk.k1-2+k2,dk.names.concat(nms).join('+'));return}
+if(fresh.length){if(dk)n.log.push('他のでき役が成立したため '+T(dk.u)+' の継続は無効になりました');n.dk=null;
+if(done){endDk(n,u,k2,nms.join('+'));return}
+n.dkq={u,names:nms,k:k2};n.log.push(T(u)+' でき役 '+nms.join('+')+' が成立');return}
+if(done){if(dk)endDk(n,dk.u,dk.k1-2,dk.names.join('+'));else settle(n);return}
+n.tp=(n.tp+1)%n.go.length});
 const ln=s=>esc(s).replace(/\u0001(.*?)\u0002/g,(_,i)=>esc(nm(i)));
 function draw(){if(!S)return;
 const sl=S.slots||[],mine=sl.indexOf(me),my=mine<0?4:mine,inS=mine>=0,mh=(S.hands&&S.hands[me])||[],ph=S.ph,p=S.pend;
@@ -129,9 +142,9 @@ if(!(ph=='play'&&myTurn&&!p))selH=null;
 const mt=selH!=null?S.field.filter(f=>f>>2==selH>>2):[],so=a=>a.slice().sort((x,y)=>x-y),ORD=['一人目','二人目','三人目'];
 const bk=x=>`<div class="cd bk ${x||''}"></div>`;
 const hrow=u=>{const hd=(S.hands&&S.hands[u])||[];if(!hd.length)return '';
-if(u==me){const can=ph=='play'&&myTurn&&!p;const ru=new Set(((S.rev&&S.rev[me])||{}).up||[]);return `<div class="hand">${so(hd).map(c=>{const has=can&&S.field.some(f=>f>>2==c>>2),im=img(c,c===selH?'sel':has?'hl':'',can?` data-a="hand" data-c="${c}"`:'');return ru.has(c)?`<div class="rv m">${im}</div>`:im}).join('')}</div>`}
+if(u==me){const can=ph=='play'&&myTurn&&!p&&!S.dkq;const ru=new Set(((S.rev&&S.rev[me])||{}).up||[]);return `<div class="hand">${so(hd).map(c=>{const has=can&&S.field.some(f=>f>>2==c>>2),im=img(c,c===selH?'sel':has?'hl':'',can?` data-a="hand" data-c="${c}"`:'');return ru.has(c)?`<div class="rv m">${im}</div>`:im}).join('')}</div>`}
 const rv=(S.rev&&S.rev[u])||{up:[],dn:[]},up=so(hd.filter(c=>rv.up.includes(c))),dn=hd.filter(c=>rv.dn.includes(c)),rest=hd.length-up.length-dn.length;
-const op=c=>img(c,'o'),ku=up.filter(c=>c!==rv.ctr),hf=Math.ceil(ku.length/2),dd=dn.map(()=>bk('o')).join(''),ct=rv.mid&&hd.includes(rv.ctr)?(up.includes(rv.ctr)?op(rv.ctr):bk('o')):'';
+const op=c=>img(c,'o'),ku=up.filter(c=>c!==rv.ctr),hf=Math.ceil(ku.length/2),dd=dn.map(()=>bk('o'+(S.hy&&S.hy[u]&&S.hy[u].some(x=>x[0]=='丹べ')?' sd':''))).join(''),ct=rv.mid&&hd.includes(rv.ctr)?(up.includes(rv.ctr)?op(rv.ctr):bk('o')):'';
 return `<div class="hand">${rv.mid?ku.slice(0,hf).map(op).join('')+ct+ku.slice(hf).map(op).join(''):up.map(op).join('')+dd}${Array.from({length:rest},()=>bk('o')).join('')}</div>`};
 const box=u=>{const isMe=u==me,cp=so((S.cap&&S.cap[u])||[]),hy=S.hy&&S.hy[u],gi=S.go?S.go.indexOf(u):-1;
 let h=`<div class="seat${u==actor?' turn':''}"><b>${esc(nm(u))}</b>${isMe?'(あなた)':''}${u==dealer&&ph!='lobby'?'<span class="oyam">親</span>':''}`;
@@ -142,6 +155,7 @@ if(S.ord&&['decl','play','res'].includes(ph)&&gi<0&&S.ord.indexOf(u)<S.dc)h+=' �
 if(ph=='lobby'&&isMe)h+=`<br><button data-a="leave">席を立つ</button>`;
 if(isMe&&ph=='decl'){const y=yaku(mh);if(y.length)h+=`<br><span class="hyn">手役: ${y.map(x=>x[0]+x[1]+'貫').join(' + ')}</span>`;
 if(myTurn)h+=`<div><button data-a="go">行く</button><button data-a="drop">降りる(降り賃 ${2*(S.dc+1)}貫)</button><button data-a="leave2">ゲームから抜ける</button></div>`}
+if(S.dk&&S.dk.u==u)h+=' <span class="ord" style="background:#c60">でき役継続中</span>';
 h+=hrow(u);
 if(cp.length)h+=`<div class="row" style="margin-top:4px">${cp.map(c=>img(c,'s')).join('')}</div>`;
 return h+'</div>'};
@@ -154,11 +168,11 @@ else if(ph=='oya'){F=`<div class="msg">親決め</div><div class="row">${S.seats
 else if(ph=='end'){F=`<div class="msg">ゲーム終了(12局)</div><table class="rs"><tr><th>名前</th><th>残額</th><th>勝ち分(端数切り上げ)</th></tr>${S.seats.map(u=>{const d=Math.ceil(((S.bal[u]||0)-60)/12);return `<tr><td>${esc(nm(u))}</td><td>${fm(S.bal[u]||0)}</td><td>${d>0?'+':''}${d}貫</td></tr>`}).join('')}</table><button data-a="newgame">新しいゲーム</button>`}
 else{let m='';
 if(ph=='decl')m=`宣言中: ${esc(nm(actor))}`;
-else if(ph=='play'){if(!myTurn)m=`${esc(nm(actor))} さんの番です`;
+else if(ph=='play'){if(S.dkq)m=myTurn?`でき役 ${S.dkq.names.join('+')}(${S.dkq.k}貫)が成立しました <button data-a="dkend">終了</button><button data-a="dkcont">続行(${S.dkq.k-2}貫に減額)</button>`:`${esc(nm(actor))} さんができ役を成立させました`;else if(!myTurn)m=`${esc(nm(actor))} さんの番です`;
 else if(!p)m=selH==null?'手札を1枚選んでください':(mt.length?'マッチする場札を選んでください':'マッチする札がありません <button data-a="discard">捨てる</button><button data-a="cancel">キャンセル</button>');
 else if(p.st=='flip')m='山札をクリックしてめくってください';else if(p.st=='shown')m='めくった札をクリックしてください';else if(p.st=='pickd')m='どちらかを選んでください';else if(p.st=='collect')m='<button data-a="collect">回収</button>'}
 else if(ph=='res'){const r=S.res||{},ch=S.chg||{},fs=v=>{if(v==0)return '0';const a=Math.abs(v),b=a/12|0,t=a%12;return (v<0?'-':'+')+(b?b+'貫':'')+(t?t+'つ':'')},g=(u,k)=>(ch[u]&&ch[u][k])||0;
-m=(r.none?'参加者が足りず流れました':'<table class="rs"><tr><th>名前</th><th>点数</th><th>点数相当</th><th>手役</th><th>でき役</th><th>降り賃・税金</th><th>合計</th><th>残額</th></tr>'+S.seats.map(u=>{const pp=r.p&&r.p[u],c=ch[u]||{},tot=Object.values(c).reduce((a,b)=>a+b,0);return `<tr><td>${esc(nm(u))}</td><td>${pp!=null?pp+'点('+(pp>=88?'+':'')+(pp-88)+')':'-'}</td><td>${fs(g(u,'pt'))}</td><td>${fs(g(u,'hy'))}</td><td>-</td><td>${fs(g(u,'fee')+g(u,'pot')+g(u,'tax'))}</td><td>${fs(tot)}</td><td>${fm(S.bal[u])}</td></tr>`}).join('')+'</table>'+(r.rev?'<div>25点以下がいるため取り札の精算は逆転</div>':''))+` <button data-a="next">${S.round>=12?'最終結果へ':'次の局へ'}</button>`}
+m=(r.none?'参加者が足りず流れました':'<table class="rs"><tr><th>名前</th><th>点数</th><th>点数相当</th><th>手役</th><th>でき役</th><th>降り賃・税金</th><th>合計</th><th>残額</th></tr>'+S.seats.map(u=>{const pp=r.p&&r.p[u],c=ch[u]||{},tot=Object.values(c).reduce((a,b)=>a+b,0);return `<tr><td>${esc(nm(u))}</td><td>${pp!=null?pp+'点('+(pp>=88?'+':'')+(pp-88)+')':'-'}</td><td>${fs(g(u,'pt'))}</td><td>${fs(g(u,'hy'))}</td><td>${fs(g(u,'dk'))}</td><td>${fs(g(u,'fee')+g(u,'pot')+g(u,'tax'))}</td><td>${fs(tot)}</td><td>${fm(S.bal[u])}</td></tr>`}).join('')+'</table>'+(r.dk?'<div>でき役で終了: '+r.dk+'</div>':'')+(r.rev?'<div>25点以下がいるため取り札の精算は逆転</div>':''))+` <button data-a="next">${S.round>=12?'最終結果へ':'次の局へ'}</button>`}
 const cardH=f=>{let x='',a='';
 if(ph=='play'&&myTurn&&!p&&mt.includes(f)){x='hl';a=' data-a="fpick" data-c="'+f+'"'}
 if(p&&p.st=='pickd'&&myTurn&&p.cand.includes(f)){x='hl';a=' data-a="dpick" data-c="'+f+'"'}
@@ -196,6 +210,8 @@ if(a=='discard'){const h=selH;selH=null;hcommit(h,[])}
 if(a=='fpick'){const M=S.field.filter(f=>f>>2==selH>>2),h=selH;selH=null;hcommit(h,M.length==2?[c]:M)}
 if(a=='dpick')mut(n=>{n.pend.dm=[c];n.pend.st='collect';delete n.pend.cand});
 if(a=='collect')collect();
+if(a=='dkend')mut(n=>{const q=n.dkq;if(!q)return;endDk(n,q.u,q.k,q.names.join('+'))});
+if(a=='dkcont')mut(n=>{const q=n.dkq;if(!q)return;n.dk={u:q.u,k1:q.k,names:q.names};n.dkq=null;n.log.push(T(q.u)+' 続行を選択');n.tp=(n.tp+1)%n.go.length});
 if(a=='pile')pileClick();
 if(a=='shown')shownClick();
 if(a=='next')mut(n=>{const w=n.seats[n.nd];if(n.round>=12){n.ph='end';return}const lv=n.lv||[];if(lv.length){n.slots=n.slots.map(u=>lv.includes(u)?null:u);n.seats=n.seats.filter(u=>!lv.includes(u));n.lv=[]}
