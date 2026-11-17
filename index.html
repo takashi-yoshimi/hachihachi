@@ -68,12 +68,12 @@ if(!myName){myName=prompt('表示名')||'名無し';try{localStorage.hhName=myNa
 const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
-set(R('n/'+me),myName);
-let S=null,C=[],names={},pending=null;const APPV=11;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+set(R('n/'+me),myName.slice(0,30));
+let S=null,C=[],names={},pending=null;const APPV=12;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
-const mut=async f=>{const n=JSON.parse(JSON.stringify(S));f(n);S=n;draw();try{await set(R('s'),JSON.stringify(n))}catch(e){alert('保存できませんでした')}};
+const mut=async f=>{const n=JSON.parse(JSON.stringify(S));f(n);if(n.log&&n.log.length>80)n.log=n.log.slice(-80);S=n;draw();try{await set(R('s'),JSON.stringify(n))}catch(e){alert('保存できませんでした')}};
 
 function yaku(h){const e=h.map(c=>(c>>2)==10?'K':ty(c)),k=e.filter(t=>t=='K').length,n=e.filter(t=>t=='N').length,r=[];
 if(k==7)r.push(['カラス',10]);else if(k==6){const o=e.find(t=>t!='K');r.push(o=='H'?['光一',8]:o=='T'?['十べ',6]:['丹べ',6])}else if(k+n==7&&n>=2)r.push(['赤',6]);
@@ -163,7 +163,7 @@ const seat=q=>{const s=(q+my-4+12)%6,u=sl[s];
 if(!u)return `<div class="seat">${ph=='lobby'&&!inS?`<button data-a="sit" data-s="${s}">着席</button>`:'<span style="opacity:.5">空席</span>'}</div>`;
 return box(u)};
 let F='';
-if(ph=='lobby'){F=`<div class="msg">着席して、2人以上そろったら「開始」を押してください</div><input id="sd" placeholder="seed(空欄で自動)" value="${esc(sdv)}" style="width:150px"> <button data-a="start"${sl.filter(Boolean).length<2||!inS?' disabled':''}>開始</button>`}
+if(ph=='lobby'){F=`<div class="msg">着席して、2人以上そろったら「開始」を押してください</div><button data-a="start"${sl.filter(Boolean).length<2||!inS?' disabled':''}>開始</button>`}
 else if(ph=='oya'){F=`<div class="msg">親決め</div><div class="row">${S.seats.map(u=>`<div style="text-align:center">${img(S.oya[u])}<div>${esc(nm(u))}${u==dealer?'<span class="oyam">親</span>':''}</div></div>`).join('')}</div><button data-a="deal">配札する</button>`}
 else if(ph=='end'){F=`<div class="msg">ゲーム終了(12局)</div><table class="rs"><tr><th>名前</th><th>残額</th><th>勝ち分(端数切り上げ)</th></tr>${S.seats.map(u=>{const d=Math.ceil(((S.bal[u]||0)-60)/12);return `<tr><td>${esc(nm(u))}</td><td>${fm(S.bal[u]||0)}</td><td>${d>0?'+':''}${d}貫</td></tr>`}).join('')}</table><button data-a="newgame">新しいゲーム</button>`}
 else{let m='';
@@ -195,7 +195,6 @@ h+='<div class="box log">'+(S.log||[]).slice(-8).map(l=>'<div>'+ln(l)+'</div>').
 h+='<div class="box"><div class="chat">'+C.slice(-30).map(m=>`<div><b>${esc(nm(m.u))}</b>: ${esc(m.t)}</div>`).join('')+'</div><input id="ci" maxlength="120" placeholder="発言"><button data-a="chat">送信</button></div>';
 const ci=document.getElementById('ci'),v=ci?ci.value:'';h+=`<div style="opacity:.8;text-align:right"><button data-a="rename" style="padding:2px 8px;font-size:11px">名前変更</button> 版 ${APPV}${S.seed!=null?' / seed '+S.seed+' / 第'+S.round+'局':''}</div>`;app.innerHTML=h;if(v)document.getElementById('ci').value=v}
 
-document.addEventListener('input',e=>{if(e.target.id=='sd')sdv=e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
 if(a=='sit')mut(n=>{if(!n.slots.includes(me))n.slots[+b.dataset.s]=me});
 if(a=='leave')mut(n=>{n.slots=n.slots.map(u=>u==me?null:u)});
@@ -217,7 +216,7 @@ if(a=='shown')shownClick();
 if(a=='next')mut(n=>{const w=n.seats[n.nd];if(n.round>=12){n.ph='end';return}const lv=n.lv||[];if(lv.length){n.slots=n.slots.map(u=>lv.includes(u)?null:u);n.seats=n.seats.filter(u=>!lv.includes(u));n.lv=[]}
 if(n.seats.length<2){n.ph='lobby';n.log.push('人数不足のため終了');return}nr(n,Math.max(0,n.seats.indexOf(w)))});
 if(a=='leave2'){mut(n=>{n.lv=(n.lv||[]).concat([me])});dec(false)}
-if(a=='rename'){const t=prompt('表示名を入力',names[me]||'');if(t&&t.trim()){try{localStorage.hhName=t.trim()}catch(e){}set(R('n/'+me),t.trim())}}
+if(a=='rename'){const t=prompt('表示名を入力',names[me]||'');if(t&&t.trim()){try{localStorage.hhName=t.trim()}catch(e){}set(R('n/'+me),t.trim().slice(0,30))}}
 if(a=='newgame')mut(n=>{const sl=n.slots;Object.keys(n).forEach(k=>delete n[k]);Object.assign(n,D());n.slots=sl});
 if(a=='chat'){const i=document.getElementById('ci'),t=i.value.trim();if(t){C=C.concat([{u:me,t}]).slice(-60);i.value='';draw();set(R('c'),JSON.stringify(C))}}});
 onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();if(!S.slots)S.slots=[null,null,null,null,null,null];draw()});
