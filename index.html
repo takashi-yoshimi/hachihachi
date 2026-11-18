@@ -69,7 +69,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName.slice(0,30));
-let S=null,C=[],names={},pending=null;const APPV=12;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+let S=null,C=[],names={},pending=null;const APPV=13;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -82,7 +82,7 @@ const P={43:['四三',20],421:['一二四',18],331:['二三本',14],322:['二二
 if(P[s])r.push(P[s]);else if(s[0]=='4')r.push(['手四',16]);else if(s[0]=='3'){let b=4;const m=+Object.keys(q).find(x=>q[x]==3);if([3,4,6].includes(m)||(m==11&&!h.some(c=>c>>2==11&&c%4==0)))b+=2;r.push([b>4?'立て三':'三本',b])}
 return r}
 
-const jbc=(h0,cap)=>{const c3={};h0.forEach(c=>c3[c>>2]=(c3[c>>2]||0)+1);let j=0;Object.keys(c3).forEach(m=>{if(c3[m]==3){const f=[0,1,2,3].map(x=>m*4+x).find(c=>!h0.includes(c));if(cap.includes(f))j++}});return j};
+const jbc=(h0,cap)=>{const c3={};h0.forEach(c=>c3[c>>2]=(c3[c>>2]||0)+1);let j=0;Object.keys(c3).forEach(m=>{if(c3[m]==3&&[0,1,2,3].every(x=>cap.includes(m*4+x)))j++});return j};
 const ad=(n,u,v,k)=>{n.bal[u]=(n.bal[u]||0)+v;n.chg=n.chg||{};(n.chg[u]=n.chg[u]||{})[k]=(n.chg[u][k]||0)+v};
 function layout(h){const e=h.map(c=>(c>>2)==10?'K':ty(c)),K=h.filter((c,i)=>e[i]=='K'),O=h.filter((c,i)=>e[i]!='K'),Nn=e.filter(t=>t=='N').length,q={};h.forEach(c=>q[c>>2]=(q[c>>2]||0)+1);
 const s=Object.values(q).sort((a,b)=>b-a).join(''),mo=Object.keys(q).filter(m=>q[m]>=2),by=m=>h.filter(c=>c>>2==m),L=[],rest=u=>h.filter(c=>!u.includes(c));
