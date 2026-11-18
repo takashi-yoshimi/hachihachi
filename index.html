@@ -69,7 +69,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName.slice(0,30));
-let S=null,C=[],names={},pending=null;const APPV=13;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={};set(R('v/'+me),APPV);
+let S=null,C=[],names={},pending=null;const APPV=14;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={},seedN=null;set(R('v/'+me),APPV);if(/^\d+$/.test(sdv.trim())){seedN=+sdv.trim();set(R('seed'),seedN)}
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -198,7 +198,7 @@ const ci=document.getElementById('ci'),v=ci?ci.value:'';h+=`<div style="opacity:
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
 if(a=='sit')mut(n=>{if(!n.slots.includes(me))n.slots[+b.dataset.s]=me});
 if(a=='leave')mut(n=>{n.slots=n.slots.map(u=>u==me?null:u)});
-if(a=='start'){const si=sdv.trim(),sd=/^\d+$/.test(si)?+si:Math.random()*1e9|0;mut(n=>{n.seed=sd;n.seats=[5,4,3,2,1,0].map(i=>n.slots[i]).filter(Boolean);if(n.seats.length<2)return;n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];
+if(a=='start'){const sd=seedN!=null?seedN:Math.random()*1e9|0;mut(n=>{n.seed=sd;n.seats=[5,4,3,2,1,0].map(i=>n.slots[i]).filter(Boolean);if(n.seats.length<2)return;n.bal={};n.seats.forEach(u=>n.bal[u]=60);n.round=0;n.tax=0;n.log=[];
 let cd=n.seats.map((_,i)=>i),dr={},tt=0;while(cd.length>1){const d=sh(ALL,K(n,tt++));dr={};n.seats.forEach((u,i)=>dr[u]=d[i]);const v=cd.map(i=>pt(dr[n.seats[i]])),m=Math.max(...v);cd=cd.filter((_,k)=>v[k]==m)}
 n.oya=dr;n.dealer=cd[0];n.ph='oya';n.log.push('seed: '+sd)})}
 if(a=='deal')mut(n=>nr(n,n.dealer));
@@ -223,5 +223,6 @@ onValue(R('s'),s=>{S=s.exists()?JSON.parse(s.val()):D();if(!S.slots)S.slots=[nul
 onValue(R('c'),s=>{C=s.exists()?JSON.parse(s.val()):[];if(S)draw()});
 onValue(R('n'),s=>{names=s.val()||{};if(S)draw()});
 onValue(R('v'),s=>{vers=s.val()||{};if(S)draw()});
+onValue(R('seed'),s=>{seedN=s.exists()?s.val():null});
 })();
 </script></body></html>
