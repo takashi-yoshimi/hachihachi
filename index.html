@@ -32,7 +32,7 @@ h1{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-align:center;letter
 .rv::before{content:'OPEN';position:absolute;top:0;left:0;right:0;text-align:center;font-size:8px;font-weight:bold;color:#d00;background:rgba(255,255,255,.85);z-index:1;line-height:12px}
 .stack{position:relative;display:inline-block}.stack .up{position:absolute;left:3px;top:3px}
 .gs{display:inline-flex;margin-right:12px}.gs .fc{margin-right:0}.gs .fc+.fc{margin-left:-34px}
-table.rs{border-collapse:collapse;font-size:12px;margin:4px 0}table.rs th,table.rs td{border:1px solid var(--ln);padding:2px 6px;text-align:right}table.rs td:first-child,table.rs th:first-child{text-align:left}
+table.rs td{font-weight:normal}table.rs tr.w td{font-weight:bold;background:var(--hi)}table.rs{border-collapse:collapse;font-size:12px;margin:4px 0}table.rs th,table.rs td{border:1px solid var(--ln);padding:2px 6px;text-align:right}table.rs td:first-child,table.rs th:first-child{text-align:left}
 .ord{background:#2a7;color:#fff;border-radius:3px;padding:0 5px;font-size:11px;margin-left:4px}
 .top{display:flex;gap:8px}.top .seat{flex:1;min-width:0}
 .fc{position:relative;display:inline-block;margin:2px 12px 14px 2px}
@@ -69,7 +69,7 @@ const fa=initializeApp(FB),au=getAuth(fa),fdb=getDatabase(fa);
 await signInAnonymously(au);
 const me=au.currentUser.uid,R=p=>ref(fdb,'rooms/'+room+'/'+p);
 set(R('n/'+me),myName.slice(0,30));
-let S=null,C=[],names={},pending=null;const APPV=16;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={},seedN=null;set(R('v/'+me),APPV);if(/^\d+$/.test(sdv.trim())){seedN=+sdv.trim();set(R('seed'),seedN)}
+let S=null,C=[],names={},pending=null;const APPV=17;let sdv=new URLSearchParams(location.search).get('seed')||'';let vers={},seedN=null;set(R('v/'+me),APPV);if(/^\d+$/.test(sdv.trim())){seedN=+sdv.trim();set(R('seed'),seedN)}
 const D=()=>({ph:'lobby',slots:[null,null,null,null,null,null],seats:[],bal:{},round:0,log:[],tax:0});
 const nm=u=>names[u]||'だれか';
 function load(){draw()}
@@ -180,7 +180,7 @@ else if(ph=='play'){if(S.dkq)m=myTurn?`でき役 ${S.dkq.names.join('+')}(${S.dk
 else if(!p)m=selH==null?'手札を1枚選んでください':(mt.length?'マッチする場札を選んでください':'マッチする札がありません <button data-a="discard">捨てる</button><button data-a="cancel">キャンセル</button>');
 else if(p.st=='flip')m='山札をクリックしてめくってください';else if(p.st=='shown')m='めくった札をクリックしてください';else if(p.st=='pickd')m='どちらかを選んでください';else if(p.st=='collect')m='<button data-a="collect">回収</button>'}
 else if(ph=='res'){const r=S.res||{},ch=S.chg||{},fs=v=>{if(v==0)return '0';const a=Math.abs(v),b=a/12|0,t=a%12;return (v<0?'-':'+')+(b?b+'貫':'')+(t?t+'つ':'')},g=(u,k)=>(ch[u]&&ch[u][k])||0,cl=(u,ks)=>{const sm=ks.reduce((a,k)=>a+g(u,k),0),cm=[].concat(...ks.map(k=>(S.cmp&&S.cmp[u]&&S.cmp[u][k])||[]));return fs(sm)+(cm.length>1?'('+cm.map(fs).join('')+')':'')};
-m=(r.none?'参加者が足りず流れました':'<table class="rs"><tr><th>名前</th><th>点数</th><th>点数相当</th><th>手役</th><th>でき役</th><th>降り賃・税金</th><th>合計</th><th>残額</th></tr>'+S.seats.map(u=>{const pp=r.p&&r.p[u],c=ch[u]||{},tot=Object.values(c).reduce((a,b)=>a+b,0);return `<tr${u===r.w?' style="font-weight:bold"':''}><td>${esc(nm(u))}</td><td>${pp!=null?pp+'点('+(pp>=88?'+':'')+(pp-88)+')':'-'}</td><td>${cl(u,['pt'])}</td><td>${cl(u,['hy'])}</td><td>${cl(u,['dk'])}</td><td>${cl(u,['fee','pot','tax'])}</td><td>${fs(tot)}</td><td>${fm(S.bal[u])}</td></tr>`}).join('')+'</table>'+(r.dk?'<div>でき役で終了: '+r.dk+'</div>':'')+(r.rev?'<div>25点以下がいるため取り札の精算は逆転</div>':''))+` <button data-a="next">${S.round>=12?'最終結果へ':'次の局へ'}</button>`}
+m=(r.none?'参加者が足りず流れました':'<table class="rs"><tr><th>名前</th><th>点数</th><th>点数相当</th><th>手役</th><th>でき役</th><th>降り賃・税金</th><th>合計</th><th>残額</th></tr>'+S.seats.map(u=>{const pp=r.p&&r.p[u],c=ch[u]||{},tot=Object.values(c).reduce((a,b)=>a+b,0);return `<tr${u===r.w?' class="w"':''}><td>${esc(nm(u))}</td><td>${pp!=null?pp+'点('+(pp>=88?'+':'')+(pp-88)+')':'-'}</td><td>${cl(u,['pt'])}</td><td>${cl(u,['hy'])}</td><td>${cl(u,['dk'])}</td><td>${cl(u,['fee','pot','tax'])}</td><td>${fs(tot)}</td><td>${fm(S.bal[u])}</td></tr>`}).join('')+'</table>'+(r.dk?'<div>でき役で終了: '+r.dk+'</div>':'')+(r.rev?'<div>25点以下がいるため取り札の精算は逆転</div>':''))+` <button data-a="next">${S.round>=12?'最終結果へ':'次の局へ'}</button>`}
 const cardH=f=>{let x='',a='';
 if(ph=='play'&&myTurn&&!p&&mt.includes(f)){x='hl';a=' data-a="fpick" data-c="'+f+'"'}
 if(p&&p.st=='pickd'&&myTurn&&p.cand.includes(f)){x='hl';a=' data-a="dpick" data-c="'+f+'"'}
@@ -199,8 +199,8 @@ if(playing){const gp=S.go,i=gp.indexOf(me),n3=gp.length;
 const oth=i<0?gp.slice().reverse():(n3==3?[gp[(i+2)%3],gp[(i+1)%3]]:gp.filter(u=>u!=me));
 h+=`<div class="top">${oth.map(box).join('')}</div><div class="field">${F}</div>`+(i>=0?box(me):`<div class="seat">見学中: ${esc(nm(me))}</div>`)}
 else h+='<div class="tbl">'+[0,1,2].map(seat).join('')+`<div class="field">${F}</div>`+[5,4,3].map(seat).join('')+'</div>';
-h+='<div class="box log">'+(S.log||[]).slice(-8).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
 h+='<div class="box"><div class="chat">'+C.slice(-30).map(m=>`<div><b>${esc(nm(m.u))}</b>: ${esc(m.t)}</div>`).join('')+'</div><input id="ci" maxlength="120" placeholder="発言"><button data-a="chat">送信</button></div>';
+h+='<div class="box log">'+(S.log||[]).slice(-8).map(l=>'<div>'+ln(l)+'</div>').join('')+'</div>';
 const ci=document.getElementById('ci'),v=ci?ci.value:'';h+=`<div style="opacity:.8;text-align:right"><button data-a="rename" style="padding:2px 8px;font-size:11px">名前変更</button> 版 ${APPV}${S.seed!=null?' / seed '+S.seed+' / 第'+S.round+'局':''}</div>`;app.innerHTML=h;if(v)document.getElementById('ci').value=v}
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!S)return;const a=b.dataset.a,c=+b.dataset.c;
